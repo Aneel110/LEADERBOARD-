@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Leaderboard Overlay</title>
+<style>
+:root {
+  --bg-row: #b81e2c;
+  --bg-row-dark: #7f1620;
+  --text: #ffffff;
+  --alive: #15e7f6;
+  --knocked: #ffc107;
+  --eliminated: #2aa4ff;
+  --row-height: 56px;
+  --font-title: 'Bebas Neue', sans-serif;
+}
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+
+body {
+  margin: 0;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-title);
+}
+.board {
+  width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.row {
+  height: var(--row-height);
+  display: grid;
+  grid-template-columns: 54px 1fr 112px 64px 64px;
+  align-items: center;
+  background: linear-gradient(90deg, var(--bg-row-dark) 0%, var(--bg-row) 40%);
+}
+.cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.rank::before {
+  content: "#";
+}
+.tag {
+  justify-content: flex-start;
+  padding-left: 8px;
+  font-size: 22px;
+}
+.bars {
+  display: flex;
+  gap: 4px;
+}
+.bar {
+  width: 14px;
+  height: 28px;
+  background: rgba(255,255,255,.2);
+  border-radius: 2px;
+}
+.bar.alive { background: var(--alive); }
+.bar.knocked { background: var(--knocked); }
+.bar.eliminated { background: var(--eliminated); }
+.stat {
+  font-size: 24px;
+}
+.legend {
+  margin-top: 8px;
+  display: flex;
+  gap: 14px;
+  font-size: 12px;
+}
+.dot {
+  width: 10px; height: 10px;
+  display: inline-block;
+}
+.dot.alive { background: var(--alive); }
+.dot.knocked { background: var(--knocked); }
+.dot.eliminated { background: var(--eliminated); }
+</style>
+</head>
+<body>
+<div class="board" id="board"></div>
+<div class="legend">
+  <span><i class="dot alive"></i>ALIVE</span>
+  <span><i class="dot knocked"></i>KNOCKED</span>
+  <span><i class="dot eliminated"></i>ELIMINATED</span>
+</div>
+
+<script>
+const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-apy924Ebh2YiQq1hIRUE1JVlvP1F5KMrCMJGl7Vzd7KQhMsYLEC7LB8TjK8jcpWQQLD_gb_vmP6J/pub?gid=981959767&single=true&output=csv';
+const POLL_MS = 3000;
+const MAX_BARS = 4;
+
+async function fetchCsv(url) {
+  const res = await fetch(url, { cache: 'no-store' });
+  return await res.text();
+}
+
+function parseCsv(text) {
+  const lines = text.trim().split(/\r?\n/);
+  return lines.map(line => line.split(','));
+}
+
+function mapData(rows) {
+  const header = rows[0].map(h => h.trim().toLowerCase());
+  const idx = {
+    rank: header.indexOf('rank'),
+    tag: header.indexOf('tag'),
+    alive: header.indexOf('alive'),
+    knocked: header.indexOf('knocked'),
+    eliminated: header.indexOf('eliminated'),
+    pts: header.indexOf('pts'),
+    elims: header.indexOf('elims')
+  };
+  return rows.slice(1).map(r => ({
+    rank: r[idx.rank] || '',
+    tag: (r[idx.tag] || '').toUpperCase(),
+    alive: Number(r[idx.alive] || 0),
+    knocked: Number(r[idx.knocked] || 0),
+    eliminated: Number(r[idx.eliminated] || 0),
+    pts: Number(r[idx.pts] || 0),
+    elims: Number(r[idx.elims] || 0)
+  }));
+}
+
+function makeBars(alive, knocked, eliminated) {
+  const bars = [];
+  for (let i = 0; i < alive; i++) bars.push('<span class="bar alive"></span>');
+  for (let i = 0; i < knocked; i++) bars.push('<span class="bar knocked"></span>');
+  for (let i = 0; i < eliminated; i++) bars.push('<span class="bar eliminated"></span>');
+  while (bars.length < MAX_BARS) bars.push('<span class="bar"></span>');
+  return `<div class="bars">${bars.join('')}</div>`;
+}
+
+function render(data) {
+  document.getElementById('board').innerHTML = data.map(d => `
+    <div class="row">
+      <div class="cell rank">${d.rank}</div>
+      <div class="cell tag">${d.tag}</div>
+      <div class="cell status">${makeBars(d.alive, d.knocked, d.eliminated)}</div>
+      <div class="cell stat">${d.pts}</div>
+      <div class="cell stat">${d.elims}</div>
+    </div>
+  `).join('');
+}
+
+async function refresh() {
+  const csv = await fetchCsv(CSV_URL);
+  const rows = parseCsv(csv);
+  render(mapData(rows));
+}
+
+setInterval(refresh, POLL_MS);
+refresh();
+</script>
+</body>
+</html>
+

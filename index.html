@@ -28,6 +28,29 @@
         }
     </style>
 </head>
+<div class="leaderboard">
+    <div class="team-row first">
+        <div class="rank">1</div>
+        <div class="logo"><img src="images/AE.png" alt="AE"></div>
+        <div class="team-name">AE</div>
+        <div class="alive-bars">
+            <span></span><span></span><span></span><span></span>
+        </div>
+        <div class="pts">23</div>
+        <div class="elims">3</div>
+    </div>
+
+    <div class="team-row">
+        <div class="rank">2</div>
+        <div class="logo"><img src="images/APG.png" alt="APG"></div>
+        <div class="team-name">APG</div>
+        <div class="alive-bars">
+            <span></span><span></span><span></span><span class="dead"></span>
+        </div>
+        <div class="pts">12</div>
+        <div class="elims">0</div>
+    </div>
+</div>
 <body>
     <h1>Leaderboard</h1>
     <table id="leaderboard"></table>
@@ -50,6 +73,60 @@
                 document.getElementById("leaderboard").innerHTML = html;
             });
     </script>
+.leaderboard {
+    width: 350px;
+    background: rgba(0,0,0,0.6);
+    font-family: Arial, sans-serif;
+    color: white;
+}
+
+.team-row {
+    display: flex;
+    align-items: center;
+    padding: 5px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.team-row.first .rank {
+    background-color: gold;
+    color: black;
+    font-weight: bold;
+}
+
+.rank {
+    width: 25px;
+    text-align: center;
+    font-size: 16px;
+}
+
+.logo img {
+    height: 30px;
+    margin: 0 8px;
+}
+
+.team-name {
+    flex: 1;
+    font-weight: bold;
+}
+
+.alive-bars span {
+    display: inline-block;
+    width: 6px;
+    height: 20px;
+    margin-right: 2px;
+    background-color: #00ffff; /* Alive cyan color */
+}
+
+.alive-bars .dead {
+    background-color: transparent;
+    border: 1px solid #00ffff;
+}
+
+.pts, .elims {
+    width: 40px;
+    text-align: center;
+}
+
 <style>
 table {
     border-collapse: collapse;
